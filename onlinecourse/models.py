@@ -10,9 +10,7 @@ from django.conf import settings
 import uuid
 
 
-class Submission(models.Model):
-    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE)
-    choices = models.ManyToManyField(Choice)
+
 
 # Instructor model
 class Instructor(models.Model):
@@ -134,5 +132,7 @@ class Choice(models.Model):
     is_correct = models.BooleanField(default = False)
 
 
-
+class Submission(models.Model):
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE)
+    choices = models.ManyToManyField(Choice)
     
