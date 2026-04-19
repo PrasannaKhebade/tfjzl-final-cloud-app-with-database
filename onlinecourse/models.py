@@ -10,6 +10,10 @@ from django.conf import settings
 import uuid
 
 
+class Submission(models.Model):
+    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE)
+    choices = models.ManyToManyField(Choice)
+
 # Instructor model
 class Instructor(models.Model):
     user = models.ForeignKey(
@@ -130,11 +134,5 @@ class Choice(models.Model):
     is_correct = models.BooleanField(default = False)
 
 
-# <HINT> The submission model
-# One enrollment could have multiple submission
-# One submission could have multiple choices
-# One choice could belong to multiple submissions
-class Submission(models.Model):
-    enrollment = models.ForeignKey(Enrollment, on_delete=models.CASCADE)
-    choices = models.ManyToManyField(Choice)
+
     
