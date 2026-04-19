@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect
 # <HINT> Import any new Models here
-from .models import Course, Enrollment
+from .models import Course, Enrollment, Question, Choice, Submission
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render, redirect
 from django.urls import reverse
@@ -11,6 +11,48 @@ import logging
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
 # Create your views here.
+
+
+
+def extract_answers(request):
+    submitted_answers = []
+    for key in request.POST:
+        if key.startswith('choice'):
+            value = request.POST[key]
+            choice_id = int(value)
+            submitted_answers.append(choice_id)
+    return submitted_answers
+
+def submit(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    user = request.user
+    enrollment = Enrollment.objects.get(user=user, course=course)
+    submission = Submission.objects.create(enrollment=enrollment)
+    choices = extract_answers(request)
+    for choice_id in choices:
+        choice = Choice.objects.get(pk=choice_id)
+        submission.choices.add(choice)
+    return HttpResponseRedirect(
+        reverse('onlinecourse:show_exam_result',
+                args=(course_id, submission.id)))
+
+def show_exam_result(request, course_id, submission_id):
+    course = get_object_or_404(Course, pk=course_id)
+    submission = Submission.objects.get(pk=submission_id)
+    choices = submission.choices.all()
+    total_score = 0
+    for question in course.question_set.all():
+        if question.is_get_score(choices):
+            total_score += question.grade
+    possible_score = sum(q.grade for q in course.question_set.all())
+    context = {
+        'course': course,
+        'choices': choices,
+        'total_score': total_score,
+        'possible_score': possible_score,
+        'submission': submission,
+    }
+    return render(request, 'onlinecourse/exam_result_bootstrap.html', context)
 
 
 def registration_request(request):
